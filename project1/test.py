@@ -92,3 +92,6 @@ for k in range(10):
     print('test error Net {:0.2f}% {:d}/{:d}'.format((100 * nb_test_errors) / test_input.size(0),
                                                       nb_test_errors, test_input.size(0)))
 
+just making useless changes
+to check thing
+
