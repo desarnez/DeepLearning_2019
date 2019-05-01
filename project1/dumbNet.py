@@ -5,6 +5,12 @@ Created on Wed May  1 09:48:41 2019
 @author: Charles
 """
 
+# -*- coding: utf-8 -*-
+"""
+Created on Wed May  1 09:21:22 2019
+
+@author: Charles
+"""
 
 import dlc_practical_prologue as prologue
 
@@ -31,9 +37,9 @@ class Comparison_Net(nn.Module):
         self.fc3 = nn.Linear(20, 2)
 
     def forward(self, x):
-        x = F.tanh(F.max_pool2d(self.conv1(x), kernel_size=2, stride=2))
-        x = F.tanh(self.conv2(x))
-        x = F.tanh(self.fc1(x.view(-1, 64*3*3)))
+        x = F.relu(F.max_pool2d(self.conv1(x), kernel_size=2, stride=2))
+        x = F.relu(self.conv2(x))
+        x = F.relu(self.fc1(x.view(-1, 64*3*3)))
         x = F.tanh(self.fc2(x))
         x = self.fc3(x)
         return x
@@ -48,7 +54,7 @@ def train_model(model, train_input, train_target, mini_batch_size):
     train_target = train_target_tmp
 
     eta = 1e-2
-    for e in range(15):
+    for e in range(30):
         sum_loss = 0
         for b in range(0, train_input.size(0), mini_batch_size):
             output = model(train_input.narrow(0, b, mini_batch_size))
@@ -70,23 +76,22 @@ def compute_nb_errors(model, input, target, mini_batch_size):
         for k in range(mini_batch_size):
             if predicted_comparison[k] != target[b+k]:
                 nb_errors = nb_errors + 1
-#        print(nb_errors)
+
     return nb_errors
 
 
 # Code exectution
+model = Comparison_Net()
+mini_batch_size = 100
 
 
-for mini_batch_size in [10, 20, 50, 100]:
-    print('Mini batch size {:d}'.format(mini_batch_size))
-    model = Comparison_Net()
-    for k in range(1):
-        train_model(model, train_input, train_target, mini_batch_size)
-        nb_classification_errors = compute_nb_errors(model, train_input,
-                                                     train_target, mini_batch_size)
-        print('Train error Net {:0.2f}% {:d}/{:d}'.format((100 * nb_classification_errors) / test_input.size(0),
-                                                          nb_classification_errors, test_input.size(0)))
-        nb_classification_errors = compute_nb_errors(model, test_input, test_target, mini_batch_size)
-        print('Test error Net {:0.2f}% {:d}/{:d}'.format((100 * nb_classification_errors) / test_input.size(0),
-                                                          nb_classification_errors, test_input.size(0)))
+for k in range(10):
+    train_model(model, train_input, train_target, mini_batch_size)
+    nb_classification_errors = compute_nb_errors(model, train_input,
+                                                 train_target, mini_batch_size)
+    print('Train error Net {:0.2f}% {:d}/{:d}'.format((100 * nb_classification_errors) / test_input.size(0),
+                                                      nb_classification_errors, test_input.size(0)))
+    nb_classification_errors = compute_nb_errors(model, test_input, test_target, mini_batch_size)
+    print('Test error Net {:0.2f}% {:d}/{:d}'.format((100 * nb_classification_errors) / test_input.size(0),
+                                                      nb_classification_errors, test_input.size(0)))
 
