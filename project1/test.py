@@ -1,29 +1,69 @@
 # -*- coding: utf-8 -*-
 """
-Created on Wed Mar 27 12:36:10 2019
+Created on Wed May  1 09:48:41 2019
 
 @author: Charles
 """
 
+
 import dlc_practical_prologue as prologue
 
 import torch
+import network
 from torch import nn
-from torch.nn import functional as F
-from torch import optim
-from torch import Tensor
-from torch.autograd import Variable
+import train
 
-class Net1(nn.Module):
-    def __init__(self):
-        self.conv1 = nn.Conv2d(2, 5, kernel_size = (2,2) )
-        self.conv2 = nn.Conv2d(5, 1, kernel_size = )
+import matplotlib.pyplot as plt
 
 
+# ------------------------ Number of errors -----------------------------------
+def compute_nb_errors(model, input, target, mini_batch_size):
+    nb_errors = 0
+    for b in range(0, input.size(0), mini_batch_size):
+        output, _, _ = model(input.narrow(0, b, mini_batch_size))
+        _, predicted_comparison = output.data.max(1)
 
-train_input, train_target , train_classes, \
-test_input, test_target, test_classes = prologue.generate_pair_sets(1000)
+        for k in range(mini_batch_size):
+            if predicted_comparison[k] != target[b+k]:
+                nb_errors = nb_errors + 1
+    return nb_errors
 
-train_input.fill_(1, 1)
+
+# Initialisation
+train_input, train_target, train_classes, \
+    test_input, test_target, test_classes = prologue.generate_pair_sets(1000)
+
+# Definition of execution parameters
+mini_batch_size = 100
+nb_epochs = 10
+iterations = 10
+nb_hidden = 50
+
+models = [network.Sharing, network.noSharing]
 
 
+loss_history = torch.zeros(len(models)*2, nb_epochs*iterations)
+nb_errors = torch.zeros(len(models)*2, iterations)
+
+i = 0
+for use_auxLoss in [True, False]:
+    for model in models:
+        model = model(nb_hidden)
+        for n in range(iterations):
+            loss_history[i, n*nb_epochs:(n+1)*nb_epochs] = model.train(
+                    train_input, train_target, train_classes,
+                    mini_batch_size, nb_epochs, use_auxLoss)
+
+            nb_errors[i, n] = compute_nb_errors(model, test_input, test_target,
+                                                mini_batch_size)
+            print(compute_nb_errors(model, test_input, test_target, mini_batch_size))
+        i += 1
+
+torch.save(loss_history, 'loss_history2.pt')
+torch.save(nb_errors, 'nb_errors.pt')
+
+#
+#model = network.Sharing(nb_hidden)
+#for k in range(10):
+#    model.train(train_input, train_target, train_classes, mini_batch_size, nb_epochs, use_auxLoss = True)
+#    print(compute_nb_errors(model, test_input, test_target, mini_batch_size))
