@@ -11,13 +11,12 @@ import dlc_practical_prologue as prologue
 import torch
 import network
 from torch import nn
-import train
 
 import matplotlib.pyplot as plt
 
 
 # ------------------------ Number of errors -----------------------------------
-def compute_nb_errors(model, input, target, mini_batch_size):
+def compute_nb_errors(model, input, target, mini_batch_size = 100):
     nb_errors = 0
     for b in range(0, input.size(0), mini_batch_size):
         output, _, _ = model(input.narrow(0, b, mini_batch_size))
@@ -39,7 +38,8 @@ nb_epochs = 10
 iterations = 5
 nb_hidden = 50
 
-models = [network.Sharing, network.noSharing]
+
+models = [network.Sharing, network.noSharing]  # List of networks to be used
 
 
 loss_history = torch.zeros(len(models)*2, nb_epochs*iterations)
@@ -49,19 +49,15 @@ i = 0
 
 for use_auxLoss in [True, False]:
     for model in models:
-        model = model(nb_hidden)
+        model = model(nb_hidden)  # Initialisation of the network
         for n in range(iterations):
-            loss_history[i, n*nb_epochs:(n+1)*nb_epochs] = model.train(train_input, train_target, train_classes, mini_batch_size =100, nb_epochs = 10, lr = 1e-2, use_auxLoss = True)
+            loss_history[i, n*nb_epochs:(n+1)*nb_epochs] = model.train(
+                    train_input, train_target, train_classes,
+                    mini_batch_size, nb_epochs, use_auxLoss = use_auxLoss)
             nb_errors[i, n] = compute_nb_errors(model, test_input, test_target,
                                                 mini_batch_size)
-            print(compute_nb_errors(model, test_input, test_target, mini_batch_size))
         i += 1
 
 torch.save(loss_history, 'loss_history.pt')
 torch.save(nb_errors, 'nb_errors.pt')
 
-#
-#model = network.Sharing(nb_hidden)
-#for k in range(10):
-#    model.train(train_input, train_target, train_classes, mini_batch_size, nb_epochs, use_auxLoss = True)
-#    print(compute_nb_errors(model, test_input, test_target, mini_batch_size))
