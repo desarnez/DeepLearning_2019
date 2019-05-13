@@ -38,8 +38,8 @@ train_input, train_target, train_classes, \
 
 # Definition of execution parameters
 mini_batch_size = 100
-nb_epochs = 20
-iterations = 10
+nb_epochs = 1
+iterations = 25
 nb_hidden = 50
 
 # List of networks to be used
@@ -65,7 +65,7 @@ for p in models:
 
             loss_history[i, n*nb_epochs:(n+1)*nb_epochs] = model.train(
                     train_input, train_target, train_classes,
-                    mini_batch_size=100, nb_epochs=20, use_auxLoss=True,
+                    mini_batch_size, nb_epochs, use_auxLoss,
                     optimizer=optimizer, eta = eta)
             nb_errors[i, n] = compute_nb_errors(model, test_input, test_target,
                                                 mini_batch_size)

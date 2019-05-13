@@ -8,6 +8,7 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
+
 class Classifier(nn.Module):
     def __init__(self):
         super(Classifier, self).__init__()
@@ -20,6 +21,7 @@ class Classifier(nn.Module):
         x = torch.tanh(self.conv2(x))
         x = torch.tanh(self.fc1(x.view(-1, 24*3*3)))
         return x
+
 
 class Classifier2(nn.Module):
     def __init__(self):
@@ -62,16 +64,16 @@ class noSharing(nn.Module):
         x2 = x.narrow(1, 1, 1)
         x1 = self.classify1(x1)
         x2 = self.classify2(x2)
-        x = self.compare(x1,x2)
+        x = self.compare(x1, x2)
         return x, x1, x2
 
     def train(self, train_input, train_target, train_classes,
-              mini_batch_size =100, nb_epochs = 20, use_auxLoss = True,
-              optimizer = torch.optim.SGD, eta = 1e-2):
+              mini_batch_size=100, nb_epochs=20, use_auxLoss=True,
+              optimizer=torch.optim.SGD, eta=1e-2):
 
         criterion = nn.CrossEntropyLoss()
         loss_history = torch.zeros(nb_epochs)
-        optimizer = optimizer(self.parameters(), lr = eta)
+        optimizer = optimizer(self.parameters(), lr=eta)
 
         for e in range(nb_epochs):
             sum_loss = 0
@@ -107,16 +109,15 @@ class Sharing(nn.Module):
         x2 = x.narrow(1, 1, 1)
         x1 = self.classify(x1)
         x2 = self.classify(x2)
-        x= self.compare(x1,x2)
+        x= self.compare(x1, x2)
         return x, x1, x2
 
-
     def train(self, train_input, train_target, train_classes,
-              mini_batch_size =100, nb_epochs = 20, use_auxLoss = True,
-              optimizer = torch.optim.SGD, eta = 1e-2):
+              mini_batch_size=100, nb_epochs=20, use_auxLoss=True,
+              optimizer=torch.optim.SGD, eta=1e-2):
 
         criterion = nn.CrossEntropyLoss()
-        optimizer = optimizer(self.parameters(), lr = eta)
+        optimizer = optimizer(self.parameters(), lr=eta)
         loss_history = torch.zeros(nb_epochs)
 
         for e in range(nb_epochs):
@@ -137,7 +138,6 @@ class Sharing(nn.Module):
 
             loss_history[e] = sum_loss
         return loss_history
-
 
 
 class Dumb(nn.Module):
@@ -161,12 +161,12 @@ class Dumb(nn.Module):
         return x
 
     def train(self, train_input, train_target, train_classes,
-              mini_batch_size =100, nb_epochs = 20, use_auxLoss = True,
-              optimizer = torch.optim.SGD, eta = 1e-2):
+              mini_batch_size=100, nb_epochs=20, use_auxLoss=True,
+              optimizer=torch.optim.SGD, eta=1e-2):
 
         criterion = nn.CrossEntropyLoss()
         loss_history = torch.zeros(nb_epochs)
-        optimizer = optimizer(self.parameters(), lr = eta)
+        optimizer = optimizer(self.parameters(), lr=eta)
 
         for e in range(nb_epochs):
             sum_loss = 0
