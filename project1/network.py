@@ -132,13 +132,14 @@ class Sharing(nn.Module):
 
 
 
-class dumb(nn.Module):
+class Dumb(nn.Module):
     def __init__(self, nb_hidden):
-        super(dumb, self).__init__()
+        super(Dumb, self).__init__()
         self.conv1 = nn.Conv2d(2, 12, kernel_size=5)
         self.conv2 = nn.Conv2d(12, 24, kernel_size=3)
-        self.fc1 = nn.Linear(24*3*3, nb_hidden)
-        self.fc2 = nn.Linear(nb_hidden, 2)
+        self.fc1 = nn.Linear(24*3*3, 10)
+        self.fc2 = nn.Linear(10, nb_hidden)
+        self.fc3 = nn.Linear(nb_hidden, 2)
 
     def forward(self, x):
         x = torch.tanh(F.max_pool2d(self.conv1(x), kernel_size=2, stride=2))
@@ -147,3 +148,24 @@ class dumb(nn.Module):
         x = torch.tanh(self.fc2(x))
         x = self.fc3(x)
         return x
+
+    def train(self, train_input, train_target, train_classes,
+              mini_batch_size =100, nb_epochs = 20, lr = 1e-2,
+              use_auxLoss = True):
+
+        criterion = nn.CrossEntropyLoss()
+        loss_history = torch.zeros(nb_epochs)
+
+        for e in range(nb_epochs):
+            sum_loss = 0
+            for b in range(0, train_input.size(0), mini_batch_size):
+                output, x1, x2 = self(train_input.narrow(0, b, mini_batch_size))
+                loss = criterion(output, train_target.narrow(0, b, mini_batch_size))
+
+                self.zero_grad()
+                loss.backward()
+                sum_loss = sum_loss + loss.item()
+                for p in self.parameters():
+                    p.data.sub_(lr * p.grad.data)
+            loss_history[e] = sum_loss
+        return loss_history
