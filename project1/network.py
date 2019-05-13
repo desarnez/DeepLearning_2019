@@ -8,7 +8,6 @@ import torch
 from torch import nn
 from torch.nn import functional as F
 
-
 class Classifier(nn.Module):
     def __init__(self):
         super(Classifier, self).__init__()
@@ -67,12 +66,12 @@ class noSharing(nn.Module):
         return x, x1, x2
 
     def train(self, train_input, train_target, train_classes,
-              mini_batch_size =100, nb_epochs = 20, eta = 1e-1,
-              use_auxLoss = True):
+              mini_batch_size =100, nb_epochs = 20, use_auxLoss = True,
+              optimizer = torch.optim.SGD, eta = 1e-2):
 
         criterion = nn.CrossEntropyLoss()
         loss_history = torch.zeros(nb_epochs)
-        optimizer = torch.optim.SGD(self.parameters(), lr = eta)
+        optimizer = optimizer(self.parameters(), lr = eta)
 
         for e in range(nb_epochs):
             sum_loss = 0
@@ -113,11 +112,11 @@ class Sharing(nn.Module):
 
 
     def train(self, train_input, train_target, train_classes,
-              mini_batch_size =100, nb_epochs = 20, eta = 1e-2,
-              use_auxLoss = True):
+              mini_batch_size =100, nb_epochs = 20, use_auxLoss = True,
+              optimizer = torch.optim.SGD, eta = 1e-2):
 
         criterion = nn.CrossEntropyLoss()
-        optimizer = torch.optim.SGD(self.parameters(), lr = eta)
+        optimizer = optimizer(self.parameters(), lr = eta)
         loss_history = torch.zeros(nb_epochs)
 
         for e in range(nb_epochs):
@@ -162,11 +161,12 @@ class Dumb(nn.Module):
         return x
 
     def train(self, train_input, train_target, train_classes,
-              mini_batch_size =100, nb_epochs = 20, lr = 1e-2,
-              use_auxLoss = True):
+              mini_batch_size =100, nb_epochs = 20, use_auxLoss = True,
+              optimizer = torch.optim.SGD, eta = 1e-2):
 
         criterion = nn.CrossEntropyLoss()
         loss_history = torch.zeros(nb_epochs)
+        optimizer = optimizer(self.parameters(), lr = eta)
 
         for e in range(nb_epochs):
             sum_loss = 0
@@ -174,10 +174,9 @@ class Dumb(nn.Module):
                 output = self(train_input.narrow(0, b, mini_batch_size))
                 loss = criterion(output, train_target.narrow(0, b, mini_batch_size))
 
-                self.zero_grad()
+                optimizer.zero_grad()
                 loss.backward()
+                optimizer.step()
                 sum_loss = sum_loss + loss.item()
-                for p in self.parameters():
-                    p.data.sub_(lr * p.grad.data)
             loss_history[e] = sum_loss
         return loss_history
