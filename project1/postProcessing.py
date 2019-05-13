@@ -22,8 +22,9 @@ for n in range(iterations):
 fig, axes = plt.subplots(2,1, figsize = (10,10), sharex = True)
 
 axes[0].set_ylabel('Loss')
-axes[0].set_xlabel('Nb Epochs')
-
+axes[1].set_xlabel('Nb Epochs')
+axes[1].set_ylabel('Nb of test errors')
+models = [network.noSharing, network.Sharing, network.Dumb]
 i = 0
 for p in models:
     for use_auxLoss in [True, False]:
