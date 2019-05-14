@@ -12,28 +12,14 @@ from torch.nn import functional as F
 class Classifier(nn.Module):
     def __init__(self):
         super(Classifier, self).__init__()
-        self.conv1 = nn.Conv2d(1, 12, kernel_size=5)
-        self.conv2 = nn.Conv2d(12, 24, kernel_size=3)
-        self.fc1 = nn.Linear(24*3*3, 10)
+        self.conv1 = nn.Conv2d(1, 24, kernel_size=5)
+        self.conv2 = nn.Conv2d(24, 48, kernel_size=3)
+        self.fc1 = nn.Linear(48*3*3, 10)
 
     def forward(self, x):
         x = torch.tanh(F.max_pool2d(self.conv1(x), kernel_size=2, stride=2))
         x = torch.tanh(self.conv2(x))
-        x = torch.tanh(self.fc1(x.view(-1, 24*3*3)))
-        return x
-
-
-class Classifier2(nn.Module):
-    def __init__(self):
-        super(Classifier2, self).__init__()
-        self.conv1 = nn.Conv2d(1, 12, kernel_size=5)
-        self.conv2 = nn.Conv2d(12, 24, kernel_size=3)
-        self.fc1 = nn.Linear(24*3*3, 10)
-
-    def forward(self, x):
-        x = torch.tanh(F.max_pool2d(self.conv1(x), kernel_size=2, stride=2))
-        x = torch.tanh(self.conv2(x))
-        x = torch.tanh(self.fc1(x.view(-1, 24*3*3)))
+        x = torch.tanh(self.fc1(x.view(-1, 48*3*3)))
         return x
 
 
